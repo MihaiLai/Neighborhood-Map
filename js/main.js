@@ -41,6 +41,8 @@ function initMap() {
  */
 function CreateMarker(locations) {
   var bounds = new google.maps.LatLngBounds();
+  //info
+  var infoWindow = new google.maps.InfoWindow();
     for(var i = 0; i < locations.length; i++) {
       var location = locations[i].location;
       var title = locations[i].title;
@@ -52,11 +54,12 @@ function CreateMarker(locations) {
         animation: google.maps.Animation.DROP,
         id: i
       });
-      //info
-      var infoWindow = new google.maps.InfoWindow();
       marker.addListener('click', function() {
-        this.setAnimation(google.maps.Animation.DROP);
-        getPlaceDetail(this, infoWindow);
+        var self = this;
+        self.setAnimation(google.maps.Animation.DROP);
+        getPlaceDetail(self, infoWindow);
+        map.setZoom(15);
+        map.setCenter(self.getPosition());
       });
       markers.push(marker);
       //add marker as a property of the location
@@ -73,22 +76,20 @@ function CreateMarker(locations) {
   function getPlaceDetail(marker, infoWindow) {
     var wikiUrlPlace = wikiUrl + marker.title;
     var placeDetail = "";
-    var wikiRequestTimeout = setTimeout(function() {
-      placeDetail = "fail to get data from wiki"
-    },8000);
     $.ajax({
         url: wikiUrlPlace,
         dataType: "jsonp", 
         success: function(response) {
-          if (response[1] == undefined) {
+          if (response.error != undefined) {
+            placeDetail = "sorry,there is an error";
+          }else if (response[1] == undefined) {
             placeDetail = "no information of this place in wiki";
           }else {
             placeDetail = "<article><header><h3>" + response[1][0] +
                         "</h3></header><p>" + response[2][0] + 
                         "</p><footer><a href='" + response[3][0] + 
-                        "'>check in wiki</a></footer>";
+                        "' target='_blank'>check in wiki</a></footer>";
           }         
-          clearTimeout(wikiRequestTimeout);
           infoWindow.setContent(placeDetail);
           infoWindow.open(map, marker);
         }
