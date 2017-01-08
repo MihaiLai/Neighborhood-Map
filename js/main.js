@@ -43,30 +43,30 @@ function CreateMarker(locations) {
   var bounds = new google.maps.LatLngBounds();
   //info
   var infoWindow = new google.maps.InfoWindow();
-    for(var i = 0; i < locations.length; i++) {
-      var location = locations[i].location;
-      var title = locations[i].title;
-      // Create a marker per location, and put into markers array.
-      var marker = new google.maps.Marker({
-        map: map,
-        position: location,
-        title: title,
-        animation: google.maps.Animation.DROP,
-        id: i
-      });
-      marker.addListener('click', function() {
-        var self = this;
-        self.setAnimation(google.maps.Animation.DROP);
-        getPlaceDetail(self, infoWindow);
-        map.setZoom(15);
-        map.setCenter(self.getPosition());
-      });
-      markers.push(marker);
-      //add marker as a property of the location
-      //then we can trigger marker listener in view model.
-      locations[i].marker = marker;
-      bounds.extend(new google.maps.LatLng(location.lat, location.lng));
-    }
+  for(var i = 0; i < locations.length; i++) {
+    var location = locations[i].location;
+    var title = locations[i].title;
+    // Create a marker per location, and put into markers array.
+    var marker = new google.maps.Marker({
+      map: map,
+      position: location,
+      title: title,
+      animation: google.maps.Animation.DROP,
+      id: i
+    });
+    marker.addListener('click', function() {
+      var self = this;
+      self.setAnimation(google.maps.Animation.DROP);
+      getPlaceDetail(self, infoWindow);
+      map.setZoom(15);
+      map.setCenter(self.getPosition());
+    });
+    markers.push(marker);
+    //add marker as a property of the location
+    //then we can trigger marker listener in view model.
+    locations[i].marker = marker;
+    bounds.extend(new google.maps.LatLng(location.lat, location.lng));
+  }
   map.fitBounds(bounds);
   /**
    * get places detail from wiki and show it in infowindow 
@@ -76,6 +76,11 @@ function CreateMarker(locations) {
   function getPlaceDetail(marker, infoWindow) {
     var wikiUrlPlace = wikiUrl + marker.title;
     var placeDetail = "";
+    var wikiRequestTimeout = setTimeout(function(){
+        placeDetail = "error connection"
+        infoWindow.setContent(placeDetail);
+        infoWindow.open(map, marker);
+    },8000);
     $.ajax({
         url: wikiUrlPlace,
         dataType: "jsonp", 
@@ -89,11 +94,13 @@ function CreateMarker(locations) {
                         "</h3></header><p>" + response[2][0] + 
                         "</p><footer><a href='" + response[3][0] + 
                         "' target='_blank'>check in wiki</a></footer>";
-          }         
+          }
+          clearTimeout(wikiRequestTimeout);         
           infoWindow.setContent(placeDetail);
           infoWindow.open(map, marker);
         }
-    });   
+    });
+
   }
 }
 /**
@@ -129,11 +136,7 @@ var ViewModel = function() {
         //if input value if part of the locations
         //show them on the list and set their maker visible
         var locationFit = item.title.toLowerCase().indexOf(filter) > -1;
-        if (!locationFit) {
-          markers[index].setVisible(false);
-        }else {
-          markers[index].setVisible(true);
-        }
+        markers[index].setVisible(locationFit);
         return locationFit;
       });
     }
