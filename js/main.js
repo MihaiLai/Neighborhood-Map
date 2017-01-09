@@ -77,9 +77,9 @@ function CreateMarker(locations) {
     var wikiUrlPlace = wikiUrl + marker.title;
     var placeDetail = "";
     var wikiRequestTimeout = setTimeout(function(){
-        placeDetail = "error connection"
-        infoWindow.setContent(placeDetail);
-        infoWindow.open(map, marker);
+      placeDetail = "error connection";
+      infoWindow.setContent(placeDetail);
+      infoWindow.open(map, marker);
     },8000);
     $.ajax({
         url: wikiUrlPlace,
@@ -100,7 +100,6 @@ function CreateMarker(locations) {
           infoWindow.open(map, marker);
         }
     });
-
   }
 }
 /**
